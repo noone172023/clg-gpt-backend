@@ -1,0 +1,5 @@
+venv/
+clg_gpt.db
+.env
+__pycache__/
+*.pyc

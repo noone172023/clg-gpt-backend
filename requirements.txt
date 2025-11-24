@@ -1,0 +1,9 @@
+# requirements.txt
+fastapi
+uvicorn[standard]
+python-multipart
+passlib[bcrypt]
+pydantic
+pydantic-settings
+google-genai # Or whatever the exact package name you used for Gemini
+sqlite3 # (Usually built-in, but good practice to list if using a wrapper)
