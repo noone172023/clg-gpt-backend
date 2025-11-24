@@ -1,6 +1,8 @@
 import os
 import uvicorn
 from fastapi import FastAPI, HTTPException, status
+# ADD THIS IMPORT
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, EmailStr
 from typing import Optional, Any
 from passlib.context import CryptContext
@@ -46,7 +48,23 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# --- Whitelist Definitions ---
+# ----------------------------------------------------
+# ⭐ FIX: CORS MIDDLEWARE ADDED TO RESOLVE "405 Method Not Allowed"
+# This allows requests from any origin (*), which is required when testing 
+# with a local index.html file connecting to a remote Render server.
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+# ----------------------------------------------------
+
+
+# --- Whitelist Definitions (Including latest additions) ---
 
 # Define the list of all allowed registration/login emails
 ALLOWED_EMAILS = {
@@ -70,11 +88,9 @@ ROLE_REQUIREMENTS = {
     "faculty1@gmail.com": {"role": "faculty", "branch": "CS"},
     "faculty2@gmail.com": {"role": "faculty", "branch": "AI"},
     
-    # Placement Cell must register with 'placement_cell' role (Branch is not strictly required)
-    "placement1@gmail.com": {"role": "placement_cell", "branch": None},
+    # Placement Cell must register with 'placement_cell' role
+    "placement1@gmail.com": {"role": "placement_cell", "branch": None}, 
     "placement2@gmail.com": {"role": "placement_cell", "branch": None},
-    
-    # Students do not require specific branch/role checks beyond the initial whitelist
 }
 
 
@@ -158,7 +174,6 @@ async def register(user_data: UserCreate):
             )
 
     # 3. Check for existing user
-    # Note: We use the normalized email for the lookup
     if db.find_user_by_email(email_lower): 
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
