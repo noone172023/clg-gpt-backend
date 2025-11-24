@@ -1,18 +1,40 @@
 import os
 import uvicorn
 from fastapi import FastAPI, HTTPException, status
-from pydantic import ValidationError
+from pydantic import BaseModel, Field, EmailStr
 from typing import Optional, Any
 from passlib.context import CryptContext
 from dotenv import load_dotenv
+from google import genai
+from google.genai import types
 
-# Import necessary modules from your project
-from database import DB
-from schemas import UserCreate, Login, ChatQuery
-from gemini_handler import generate_response, get_gemini_model_config
+# Assuming you have committed database.py which contains the DB class
+from database import DB 
 
-# Load environment variables (like GEMINI_API_KEY and DATABASE_URL)
+
+# Load environment variables (like GEMINI_API_KEY)
 load_dotenv()
+
+# --- Pydantic Schemas (Defining them here since schemas.py is missing) ---
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+    full_name: str
+    username: str
+    branch: str = Field(pattern=r'^(CS|AI|IS)$')
+    usn: str = Field(min_length=10, max_length=10) # USN or Employee ID
+    study_year: int = Field(ge=1, le=4)
+    role: str = Field(pattern=r'^(student|faculty|placement_cell)$')
+    
+class Login(BaseModel):
+    email: EmailStr
+    password: str
+
+class ChatQuery(BaseModel):
+    user_email: EmailStr
+    query: str
+
 
 # --- Backend Configuration ---
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -20,12 +42,11 @@ db = DB()
 
 app = FastAPI(
     title="CLGPT Backend API",
-    description="Backend service for CLGPT using FastAPI, MongoDB, and the Gemini API.",
+    description="Backend service for CLGPT using FastAPI, SQLite, and the Gemini API.",
     version="1.0.0"
 )
 
-# Define the list of allowed registration/login emails
-# Emails must be lower-cased for case-insensitive checking
+# Define the list of allowed registration/login emails (Whitelist)
 ALLOWED_EMAILS = {
     "shreyashetty670@gmail.com", 
     "swathi6105@gmail.com", 
@@ -49,6 +70,29 @@ def determine_user_dashboard(role: str, study_year: int) -> str:
         return "student_general"
     # Placeholder for other roles
     return "general"
+    
+# --- Gemini Handler Functions (Defining them here since gemini_handler.py is missing) ---
+
+def generate_response(prompt: str, system_instruction: str) -> str:
+    """Sends a query to the Gemini API and returns the text response."""
+    
+    # 1. Initialize the client using the environment variable
+    # Reads the GEMINI_API_KEY set in Render environment variables
+    client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    
+    # 2. Configure the model with the user's context
+    config = types.GenerateContentConfig(
+        system_instruction=system_instruction
+    )
+    
+    # 3. Call the API
+    response = client.models.generate_content(
+        model='gemini-2.5-flash',
+        contents=[prompt],
+        config=config,
+    )
+    
+    return response.text
 
 
 # --- API Endpoints ---
@@ -75,6 +119,7 @@ async def register(user_data: UserCreate):
 
     # 3. Handle ID field based on role (USN for students, Employee ID for others)
     usn = user_data.usn
+    # Note: Pydantic validation handles the length now, but keeping this for role check
     if user_data.role != 'student' and len(usn) != 10:
          raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -158,14 +203,13 @@ async def chat_with_gemini(query: ChatQuery):
 
     except Exception as e:
         print(f"Gemini API Error: {e}")
+        # Note: If API key is wrong, the client initialization will fail here.
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occurred while processing the request: {e}"
         )
 
-# --- Student Utility Endpoints (Requires refactoring to check user auth/role) ---
-# NOTE: In a real production app, these should check if the logged-in user 
-# has the 'student' role before allowing access.
+# --- Student Utility Endpoints ---
 
 @app.get("/student/notes-link/{branch}")
 async def get_notes_link(branch: str):
@@ -200,7 +244,7 @@ async def get_schedule(usn: str):
     except IndexError:
         raise HTTPException(status_code=400, detail="Invalid USN format.")
 
-# --- Placement Utility Endpoints (Requires refactoring to check user auth/role) ---
+# --- Placement Utility Endpoints ---
 
 @app.get("/placement/jobs")
 async def get_job_posts():
