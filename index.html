@@ -3,393 +3,335 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CLGPT Frontend Test Interface</title>
+    <title>CLGPT Frontend Tester</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; color: #333; }
-        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: #007bff; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .logo { font-size: 32px; font-weight: bold; text-align: center; margin-bottom: 20px; }
-        .logo span { color: #007bff; font-size: 1.2em; vertical-align: super; }
-        .section { margin-bottom: 30px; padding: 15px; border: 1px solid #ddd; border-radius: 6px; background: #fafafa; }
-        h2 { color: #333; margin-top: 0; }
-        label { display: block; margin-top: 10px; font-weight: bold; }
-        input[type="text"], input[type="email"], input[type="password"], select, textarea, input[type="number"] {
-            width: 98%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;
-        }
-        button {
-            padding: 10px 15px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px;
-        }
-        button:hover { background-color: #218838; }
-        .output { background: #e9ecef; padding: 10px; border-radius: 4px; white-space: pre-wrap; margin-top: 15px; min-height: 50px; }
-        .status { font-weight: bold; margin-bottom: 10px; }
-        .logged-in-status { color: #007bff; }
-        .chat-output { background-color: #e6f7ff; border: 1px solid #b3e0ff; }
-        .error { color: red; }
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; }
+        .container { max-width: 800px; margin: auto; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        h1, h2 { color: #333; border-bottom: 2px solid #ccc; padding-bottom: 10px; margin-top: 20px; }
+        form div { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="password"], input[type="email"], select { width: 98%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .status-box { padding: 15px; margin-top: 20px; border-radius: 4px; font-weight: bold; }
+        .status-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .dashboard-view { display: none; padding: 20px; border: 1px dashed #007bff; margin-top: 20px; }
+        textarea { width: 98%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; resize: vertical; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="logo">CL<span>G</span>PT</div>
-        <h1>CLGPT Backend API Client</h1>
+        <h1>CLGPT API Tester (Frontend Mockup)</h1>
+        <p>Backend URL: <strong id="api-url"></strong></p>
+        <hr>
 
-        <div class="section">
-            <h2>User Status</h2>
-            <p class="status">Logged-in User: <span id="current-user" class="logged-in-status">None</span></p>
-            <p>Role: <span id="current-role">None</span>, Year: <span id="current-year">None</span></p>
+        <div id="auth-view" class="main-view">
+            
+            <h2>1. Register User (POST /register)</h2>
+            <form id="registerForm">
+                <div>
+                    <label for="regRole">Role:</label>
+                    <select id="regRole" required>
+                        <option value="student">Student</option>
+                        <option value="faculty">Faculty</option>
+                        <option value="placement_cell">Placement Cell</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="regEmail">Email:</label>
+                    <input type="email" id="regEmail" value="faculty1@gmail.com" required>
+                </div>
+                <div>
+                    <label for="regPassword">Password:</label>
+                    <input type="password" id="regPassword" value="password123" required>
+                </div>
+                <div>
+                    <label for="regFullName">Full Name:</label>
+                    <input type="text" id="regFullName" value="F. One" required>
+                </div>
+                <div>
+                    <label for="regUsername">Username:</label>
+                    <input type="text" id="regUsername" value="faculty_one" required>
+                </div>
+                <div>
+                    <label for="regBranch">Branch (CS, AI, or IS):</label>
+                    <select id="regBranch" required>
+                        <option value="CS">CS</option>
+                        <option value="AI">AI</option>
+                        <option value="IS">IS</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="regUSN">USN (e.g., 4cb23a065 or 10-digit Employee ID):</label>
+                    <input type="text" id="regUSN" value="EMP4567890" required>
+                </div>
+                <div>
+                    <label for="regStudyYear">Study Year (1-4):</label>
+                    <input type="number" id="regStudyYear" value="0" min="0" max="4" required>
+                </div>
+                <button type="submit">Register</button>
+            </form>
+            <div id="registerStatus" class="status-box" style="display:none;"></div>
+            
+            <hr>
+
+            <h2>2. Login User (POST /login)</h2>
+            <form id="loginForm">
+                <div>
+                    <label for="logEmail">Email:</label>
+                    <input type="email" id="logEmail" value="faculty1@gmail.com" required>
+                </div>
+                <div>
+                    <label for="logPassword">Password:</label>
+                    <input type="password" id="logPassword" value="password123" required>
+                </div>
+                <button type="submit">Login</button>
+            </form>
+            <div id="loginStatus" class="status-box" style="display:none;"></div>
+
+        </div>
+
+        <div id="general-chat-component" style="display: none;">
+            <h3>💬 Role-Contextual Chat (POST /gemini-chat)</h3>
+            <form id="chatForm">
+                <input type="hidden" id="chatUserEmail">
+                <div>
+                    <label for="chatQuery">Ask the CLGPT Assistant:</label>
+                    <textarea id="chatQuery" placeholder="E.g., What are the core topics in AI Branch?" required></textarea>
+                </div>
+                <button type="submit">Send Query</button>
+            </form>
+            <div id="chatStatus" class="status-box" style="display:none;"></div>
+            <div id="chatResponse" class="status-box"></div>
         </div>
         
-        <div class="section" id="register-section">
-            <h2>1. Register New User</h2>
-            <p style="color: grey;">Use unique values for email/usn/employee-id for each test!</p>
-            
-            <label for="reg-role">Role:</label>
-            <select id="reg-role" onchange="updateIdFields()">
-                <option value="student">Student</option>
-                <option value="faculty">Faculty</option>
-                <option value="placement_cell">Placement Cell</option>
-            </select>
-
-            <label for="reg-email">Email:</label><input type="email" id="reg-email" value="new_student@clg.edu">
-            <label for="reg-password">Password:</label><input type="password" id="reg-password" value="TestPassword123">
-            <label for="reg-fullname">Full Name:</label><input type="text" id="reg-fullname" value="Anya Sharma">
-            <label for="reg-username">Username:</label><input type="text" id="reg-username" value="anya_s">
-            
-            <label for="reg-branch">Branch:</label>
-            <select id="reg-branch">
-                <option value="CS">CS</option>
-                <option value="AI">AI</option>
-                <option value="IS">IS</option>
-            </select>
-
-            <div id="usn-field" style="display: block;">
-                <label for="reg-usn">USN (e.g., 4cb23cs001):</label>
-                <input type="text" id="reg-usn" value="4cb23cs001">
-            </div>
-
-            <div id="employee-id-field" style="display: none;">
-                <label for="reg-employee-id">Employee ID (10 digits, MMyyID):</label>
-                <input type="text" id="reg-employee-id" value="0923000555">
-            </div>
-            <label for="reg-year">Study Year:</label><input type="number" id="reg-year" value="2" min="0" max="4">
-            
-            <button onclick="handleRegister()">Register</button>
-            <div class="output" id="register-output"></div>
+        <div id="student_general" class="dashboard-view">
+            <h2>Student Dashboard (Year 1/2)</h2>
+            <p>Welcome, **<span id="sg-name">User</span>**! Access General Notes and Academic Schedule.</p>
+            <button onclick="getStudentNotes('sg-branch')">Get Notes Link (GET /student/notes-link)</button>
+            <div id="sg-notes-status" class="status-box"></div>
+            <div id="sg-schedule-status" class="status-box"></div>
         </div>
 
-        <div class="section" id="login-section">
-            <h2>2. Login User</h2>
-            <label for="login-email">Email:</label><input type="email" id="login-email" value="new_student@clg.edu">
-            <label for="login-password">Password:</label><input type="password" id="login-password" value="TestPassword123">
-            <button onclick="handleLogin()">Login</button>
-            <div class="output" id="login-output"></div>
+        <div id="student_placements" class="dashboard-view">
+            <h2>Student Placement Dashboard (Year 3/4)</h2>
+            <p>Welcome, **<span id="sp-name">User</span>**! Check Placement Jobs and Schedules.</p>
+            <button onclick="getStudentSchedule('sp-usn')">Get Schedule Link (GET /student/schedule)</button>
+            <button onclick="getJobPosts()">View Latest Job Posts (GET /placement/jobs)</button>
+            <div id="sp-schedule-status" class="status-box"></div>
+            <div id="sp-jobs-status" class="status-box"></div>
         </div>
 
-        <div class="section" id="chat-section" style="display: none;">
-            <h2>3. CLGPT Chat Interface</h2>
-            <label for="chat-query">Your Question:</label>
-            <textarea id="chat-query" rows="4" placeholder="Ask about DSA concepts, placements, or your schedule..."></textarea>
-            <button onclick="handleChat()">Ask CLGPT</button>
-            <div class="output chat-output" id="chat-output"></div>
+        <div id="faculty_dashboard" class="dashboard-view">
+            <h2>Faculty Dashboard (<span id="f-branch">CS</span>)</h2>
+            <p>Welcome, **<span id="f-name">Faculty</span>**! Your access is limited to your departmental context for chat.</p>
+            <p>Your branch context: <strong id="f-branch-context"></strong></p>
+        </div>
+
+        <div id="placement_dashboard" class="dashboard-view">
+            <h2>Placement Cell Dashboard</h2>
+            <p>Welcome, **<span id="pc-name">Placement Officer</span>**! Full oversight of placement activities.</p>
+            <button onclick="getJobPosts()">View All Job Posts (GET /placement/jobs)</button>
+            <div id="pc-jobs-status" class="status-box"></div>
         </div>
         
-        <div class="section" id="placement-dashboard-section" style="display: none;">
-            <h2>4. Placement Dashboard (3rd & 4th Year Only)</h2>
-            <p>You are placement-eligible. View job posts and related resources.</p>
-            
-            <h3>Available Jobs</h3>
-            <button onclick="fetchJobs()">Load All Job Posts</button>
-            <div class="output" id="jobs-output">Click the button above to see all current openings.</div>
-        </div>
-
-        <div class="section" id="general-student-dashboard-section" style="display: none;">
-            <h2>5. General Student Dashboard (All Students)</h2>
-            <p>Access your notes and schedule links here, regardless of your year.</p>
-            
-            <div style="display: flex; gap: 20px;">
-                <div style="flex: 1;">
-                    <h3>Notes Utility</h3>
-                    <label for="notes-branch">Get Notes Link for Branch:</label>
-                    <input type="text" id="notes-branch" placeholder="e.g., CS">
-                    <button onclick="fetchNotesLink()">Get Notes Link</button>
-                    <div class="output" id="notes-output"></div>
-                </div>
-                
-                <div style="flex: 1;">
-                    <h3>Schedule Utility</h3>
-                    <label for="schedule-usn">Get Schedule for USN:</label>
-                    <input type="text" id="schedule-usn" placeholder="e.g., 4cb23cs001">
-                    <button onclick="fetchSchedule()">Get Schedule</button>
-                    <div class="output" id="schedule-output"></div>
-                </div>
-            </div>
-        </div>
-        </div>
+    </div>
 
     <script>
-        const API_BASE = 'http://127.0.0.1:8000';
-        let currentUserEmail = localStorage.getItem('userEmail') || null;
-        let currentUserRole = localStorage.getItem('userRole') || null;
-        let currentUserYear = localStorage.getItem('userYear') || null;
-        let currentDashboard = localStorage.getItem('currentDashboard') || null;
+        // --- CONFIGURATION ---
+        const API_BASE_URL = "https://clg-gpt.onrender.com"; 
+        // Example: "https://clg-gpt.onrender.com";
 
-        // --- Helper Functions ---
-        function updateUI() {
-            document.getElementById('current-user').textContent = currentUserEmail || 'None';
-            document.getElementById('current-role').textContent = currentUserRole || 'None';
-            document.getElementById('current-year').textContent = currentUserYear || 'None';
+        // IMPORTANT: Replace the placeholder above with your actual live Render URL.
+        document.getElementById('api-url').textContent = API_BASE_URL;
+        let currentUser = {}; // Global object to hold user data (email, role, branch, etc.)
 
-            const chatSection = document.getElementById('chat-section');
-            const placementSection = document.getElementById('placement-dashboard-section');
-            const generalSection = document.getElementById('general-student-dashboard-section');
+        // --- UTILITY FUNCTIONS ---
 
-            // 1. Hide all dashboards initially
-            chatSection.style.display = 'none';
-            placementSection.style.display = 'none';
-            generalSection.style.display = 'none';
-
-            if (currentUserEmail) {
-                // Show chat for anyone logged in
-                chatSection.style.display = 'block';
-
-                // 2. Logic for General Student Dashboard (All students)
-                if (currentUserRole === 'student') {
-                    generalSection.style.display = 'block';
-                }
-
-                // 3. Logic for Placement Dashboard (Only for 3rd and 4th year students)
-                if (currentDashboard === 'student_placements') {
-                    placementSection.style.display = 'block';
-                }
-            }
+        function setStatus(elementId, message, type) {
+            const statusBox = document.getElementById(elementId);
+            statusBox.style.display = 'block';
+            statusBox.className = `status-box status-${type}`;
+            statusBox.innerHTML = message;
         }
 
-        function clearLocalStorage() {
-            localStorage.removeItem('userEmail');
-            localStorage.removeItem('userRole');
-            localStorage.removeItem('userYear');
-            localStorage.removeItem('currentDashboard');
-            currentUserEmail = null;
-            currentUserRole = null;
-            currentUserYear = null;
-            currentDashboard = null;
-            updateUI();
-        }
-
-        function showOutput(elementId, data, isError = false) {
-            const outputElement = document.getElementById(elementId);
-            outputElement.innerHTML = `<strong>Status:</strong> <span class="${isError ? 'error' : 'success'}">${isError ? 'ERROR' : 'SUCCESS'}</span><br>`;
-            outputElement.innerHTML += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
-            outputElement.scrollTop = outputElement.scrollHeight; 
-        }
-
-        function updateIdFields() {
-            const role = document.getElementById('reg-role').value;
-            const usnField = document.getElementById('usn-field');
-            const employeeIdField = document.getElementById('employee-id-field');
-            const regYear = document.getElementById('reg-year');
-
-            if (role === 'student') {
-                usnField.style.display = 'block';
-                employeeIdField.style.display = 'none';
-                regYear.value = 2; 
-                regYear.min = 1; 
-                regYear.max = 4;
-            } else { // faculty or placement_cell
-                usnField.style.display = 'none';
-                employeeIdField.style.display = 'block';
-                regYear.value = 0; 
-                regYear.min = 0;
-                regYear.max = 0;
-            }
-        }
-
-        // --- API Handlers ---
-
-        async function handleRegister() {
-            clearLocalStorage(); 
-
-            const role = document.getElementById('reg-role').value;
-            let identificationId;
-            if (role === 'student') {
-                identificationId = document.getElementById('reg-usn').value;
-            } else {
-                identificationId = document.getElementById('reg-employee-id').value;
-            }
-
-            const payload = {
-                email: document.getElementById('reg-email').value,
-                password: document.getElementById('reg-password').value,
-                full_name: document.getElementById('reg-fullname').value,
-                username: document.getElementById('reg-username').value,
-                branch: document.getElementById('reg-branch').value,
-                usn: identificationId, 
-                study_year: parseInt(document.getElementById('reg-year').value),
-                role: role
-            };
-
-            if (role !== 'student' && payload.usn.length !== 10) {
-                 showOutput('register-output', { 
-                    message: 'Client-Side Error', 
-                    detail: 'Faculty/Placement Cell Employee ID must be 10 digits.' 
-                }, true);
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE}/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const data = await response.json();
-
-                if (response.ok) {
-                    showOutput('register-output', data);
-                    document.getElementById('login-email').value = payload.email;
-                    document.getElementById('login-password').value = payload.password;
-                } else {
-                    showOutput('register-output', data, true);
-                }
-            } catch (error) {
-                showOutput('register-output', { message: 'Network error occurred during registration.', error: error.message }, true);
-            }
-        }
-
-        async function handleLogin() {
-            clearLocalStorage(); 
-
-            const payload = {
-                email: document.getElementById('login-email').value,
-                password: document.getElementById('login-password').value
-            };
-
-            try {
-                const response = await fetch(`${API_BASE}/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const data = await response.json();
-
-                if (response.ok) {
-                    showOutput('login-output', data);
-                    
-                    currentUserEmail = payload.email;
-                    currentUserRole = data.role;
-                    currentUserYear = data.study_year;
-                    currentDashboard = data.dashboard; 
-
-                    localStorage.setItem('userEmail', currentUserEmail);
-                    localStorage.setItem('userRole', currentUserRole);
-                    localStorage.setItem('userYear', currentUserYear);
-                    localStorage.setItem('currentDashboard', currentDashboard);
-                    
-                    updateUI();
-                } else {
-                    showOutput('login-output', data, true);
-                }
-            } catch (error) {
-                showOutput('login-output', { message: 'Network error occurred during login.', error: error.message }, true);
-            }
-        }
-
-        async function handleChat() {
-            if (!currentUserEmail) {
-                alert('Please log in first to use the chat.');
-                return;
-            }
-
-            const query = document.getElementById('chat-query').value;
-            if (!query.trim()) return;
+        // ⭐ NEW: FUNCTION TO SWITCH DASHBOARD VIEWS ⭐
+        function showView(viewId) {
+            document.querySelectorAll('.main-view, .dashboard-view, #general-chat-component').forEach(el => {
+                el.style.display = 'none';
+            });
             
-            document.getElementById('chat-query').value = '';
+            if (viewId === 'auth-view') {
+                document.getElementById('auth-view').style.display = 'block';
+            } else {
+                document.getElementById(viewId).style.display = 'block';
+                document.getElementById('general-chat-component').style.display = 'block';
+                
+                // Populate dashboard details
+                document.getElementById('chatUserEmail').value = currentUser.email;
 
-            const payload = {
-                user_email: currentUserEmail,
-                query: query
+                if (viewId === 'student_general') {
+                    document.getElementById('sg-name').textContent = currentUser.full_name;
+                    document.getElementById('sg-branch').textContent = currentUser.branch;
+                } else if (viewId === 'student_placements') {
+                    document.getElementById('sp-name').textContent = currentUser.full_name;
+                    document.getElementById('sp-usn').textContent = currentUser.usn;
+                } else if (viewId === 'faculty_dashboard') {
+                    document.getElementById('f-name').textContent = currentUser.full_name;
+                    document.getElementById('f-branch').textContent = currentUser.branch;
+                    document.getElementById('f-branch-context').textContent = `Role: ${currentUser.role}, Branch: ${currentUser.branch}`;
+                } else if (viewId === 'placement_dashboard') {
+                    document.getElementById('pc-name').textContent = currentUser.full_name;
+                }
+            }
+        }
+
+
+        // --- API HANDLERS ---
+
+        async function registerUser(event) {
+            event.preventDefault();
+            const url = `${API_BASE_URL}/register`;
+            const data = {
+                role: document.getElementById('regRole').value,
+                email: document.getElementById('regEmail').value,
+                password: document.getElementById('regPassword').value,
+                full_name: document.getElementById('regFullName').value,
+                username: document.getElementById('regUsername').value,
+                branch: document.getElementById('regBranch').value,
+                usn: document.getElementById('regUSN').value,
+                study_year: parseInt(document.getElementById('regStudyYear').value),
             };
 
-            let chatLog = document.getElementById('chat-output');
-            chatLog.innerHTML += `<div style="background:#ccffcc; padding:5px; margin-bottom:5px;"><strong>You:</strong> ${query}</div>`;
-            chatLog.innerHTML += `<div id="loading-message" style="color:orange; padding:5px; margin-bottom:5px;">CLGPT is typing...</div>`;
-
-
             try {
-                const response = await fetch(`${API_BASE}/gemini-chat`, {
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify(data)
                 });
-                const data = await response.json();
 
-                document.getElementById('loading-message').remove();
+                const result = await response.json();
 
                 if (response.ok) {
-                    chatLog.innerHTML += `<div style="background:#e6f7ff; padding:5px; margin-bottom:10px;"><strong>CLGPT:</strong> ${data.response}</div>`;
+                    setStatus('registerStatus', `Status: SUCCESS (HTTP ${response.status})<br>Message: ${result.message}`, 'success');
                 } else {
-                    chatLog.innerHTML += `<div class="error" style="padding:5px; margin-bottom:10px;"><strong>CLGPT Error:</strong> ${data.detail || 'Failed to get response'}</div>`;
+                    setStatus('registerStatus', `Status: ERROR (HTTP ${response.status})<br>Detail: ${result.detail || result.message}`, 'error');
                 }
             } catch (error) {
-                document.getElementById('loading-message').remove();
-                chatLog.innerHTML += `<div class="error" style="padding:5px; margin-bottom:10px;"><strong>Network Error:</strong> ${error.message}</div>`;
+                setStatus('registerStatus', `Status: ERROR<br>"message": "Network error occurred during request.", "error": "Failed to fetch"`, 'error');
             }
-            chatLog.scrollTop = chatLog.scrollHeight; 
+        }
+
+        async function loginUser(event) {
+            event.preventDefault();
+            const url = `${API_BASE_URL}/login`;
+            const data = {
+                email: document.getElementById('logEmail').value,
+                password: document.getElementById('logPassword').value,
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    setStatus('loginStatus', `Status: SUCCESS (HTTP ${response.status})<br>Dashboard Key: ${result.dashboard}`, 'success');
+                    
+                    // ⭐ LOGIN SUCCESS HANDLER - ROUTING TO CORRECT DASHBOARD ⭐
+                    currentUser = result; // Store all returned user data globally
+                    currentUser.full_name = currentUser.full_name || "User";
+                    showView(result.dashboard); // Load the specific dashboard based on API response
+                } else {
+                    setStatus('loginStatus', `Status: ERROR (HTTP ${response.status})<br>Detail: ${result.detail || result.message}`, 'error');
+                }
+            } catch (error) {
+                setStatus('loginStatus', `Status: ERROR<br>"message": "Network error occurred during request.", "error": "Failed to fetch"`, 'error');
+            }
+        }
+
+        async function chatWithGemini(event) {
+            event.preventDefault();
+            const url = `${API_BASE_URL}/gemini-chat`;
+            const query = document.getElementById('chatQuery').value;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_email: currentUser.email, query: query })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    setStatus('chatResponse', `**Gemini Response:**<br>${result.response}`, 'success');
+                } else {
+                    setStatus('chatResponse', `**Gemini Error:**<br>Detail: ${result.detail || result.message}`, 'error');
+                }
+            } catch (error) {
+                setStatus('chatResponse', `**Chat Error:**<br>"message": "Network error occurred during request.", "error": "Failed to fetch"`, 'error');
+            }
+        }
+
+        // Utility Endpoint Handlers (Mocked to show functionality)
+        async function getStudentNotes() {
+            const url = `${API_BASE_URL}/student/notes-link/${currentUser.branch}`;
+            try {
+                const response = await fetch(url);
+                const result = await response.json();
+                const statusBox = document.getElementById('sg-notes-status');
+                statusBox.className = 'status-box status-success';
+                statusBox.innerHTML = `**Notes Link (${currentUser.branch}):** <a href="${result.link}" target="_blank">${result.link}</a>`;
+            } catch (error) {
+                setStatus('sg-notes-status', 'Could not fetch notes link.', 'error');
+            }
         }
         
-        // --- UTILITY HANDLERS ---
-        async function fetchJobs() {
-            try {
-                const response = await fetch(`${API_BASE}/placement/jobs`);
-                const data = await response.json();
-                
-                if (response.ok) {
-                    showOutput('jobs-output', data);
-                } else {
-                    showOutput('jobs-output', data, true);
-                }
+        async function getStudentSchedule() {
+            const url = `${API_BASE_URL}/student/schedule/${currentUser.usn}`;
+             try {
+                const response = await fetch(url);
+                const result = await response.json();
+                const statusBox = document.getElementById('sp-schedule-status');
+                statusBox.className = 'status-box status-success';
+                statusBox.innerHTML = `**Schedule Link:** <a href="${result.link}" target="_blank">${result.link}</a>`;
             } catch (error) {
-                showOutput('jobs-output', { message: 'Network error.', error: error.message }, true);
+                setStatus('sp-schedule-status', 'Could not fetch schedule link.', 'error');
+            }
+        }
+        
+        async function getJobPosts() {
+            const url = `${API_BASE_URL}/placement/jobs`;
+            const statusId = currentUser.role === 'placement_cell' ? 'pc-jobs-status' : 'sp-jobs-status';
+            
+            try {
+                const response = await fetch(url);
+                const result = await response.json();
+                
+                let jobList = result.jobs.map(job => 
+                    `<li>**${job.title}** at ${job.company} (${job.salary})</li>`
+                ).join('');
+                
+                setStatus(statusId, `**Latest Job Posts:** <ul>${jobList}</ul>`, 'success');
+            } catch (error) {
+                setStatus(statusId, 'Could not fetch job posts.', 'error');
             }
         }
 
-        async function fetchNotesLink() {
-            const branch = document.getElementById('notes-branch').value;
-            try {
-                const response = await fetch(`${API_BASE}/student/notes-link/${branch}`);
-                const data = await response.json();
-                
-                if (response.ok) {
-                    showOutput('notes-output', data);
-                } else {
-                    showOutput('notes-output', data, true);
-                }
-            } catch (error) {
-                showOutput('notes-output', { message: 'Network error.', error: error.message }, true);
-            }
-        }
 
-        async function fetchSchedule() {
-            const usn = document.getElementById('schedule-usn').value;
-            try {
-                const response = await fetch(`${API_BASE}/student/schedule/${usn}`);
-                const data = await response.json();
-                
-                if (response.ok) {
-                    showOutput('schedule-output', data);
-                } else {
-                    showOutput('schedule-output', data, true);
-                }
-            } catch (error) {
-                showOutput('schedule-output', { message: 'Network error.', error: error.message }, true);
-            }
-        }
-        // -----------------------------
-
-
-        // Initialize UI status and dynamic fields on load
-        updateUI();
-        updateIdFields(); 
-
+        // --- EVENT LISTENERS AND INITIALIZATION ---
+        document.getElementById('registerForm').addEventListener('submit', registerUser);
+        document.getElementById('loginForm').addEventListener('submit', loginUser);
+        document.getElementById('chatForm').addEventListener('submit', chatWithGemini);
+        
+        // Start on the authentication view
+        showView('auth-view');
     </script>
 </body>
 </html>

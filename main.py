@@ -11,6 +11,7 @@ from google import genai
 from google.genai import types
 
 # Assuming you have committed database.py which contains the DB class
+# NOTE: Ensure you have a working database.py file in your project directory
 from database import DB 
 
 
@@ -25,7 +26,9 @@ class UserCreate(BaseModel):
     full_name: str
     username: str
     branch: str = Field(pattern=r'^(CS|AI|IS)$')
-    usn: str = Field(min_length=10, max_length=10) # USN or Employee ID
+    # **FIXED:** Relaxed USN validation to accept 8 to 12 characters (for USN or 10-digit Employee ID)
+    usn: str = Field(min_length=8, max_length=12) 
+    # NOTE: Set study_year to a value >= 1 (e.g., 1) for non-students (Faculty/Placement Cell)
     study_year: int = Field(ge=1, le=4)
     role: str = Field(pattern=r'^(student|faculty|placement_cell)$')
     
@@ -49,9 +52,8 @@ app = FastAPI(
 )
 
 # ----------------------------------------------------
-# ⭐ FIX: CORS MIDDLEWARE ADDED TO RESOLVE "405 Method Not Allowed"
-# This allows requests from any origin (*), which is required when testing 
-# with a local index.html file connecting to a remote Render server.
+# ⭐ FIX: CORS MIDDLEWARE ADDED TO RESOLVE "405 Method Not Allowed" and "Failed to fetch"
+# This allows requests from any origin (*)
 origins = ["*"]
 
 app.add_middleware(
@@ -66,7 +68,6 @@ app.add_middleware(
 
 # --- Whitelist Definitions (Including latest additions) ---
 
-# Define the list of all allowed registration/login emails
 ALLOWED_EMAILS = {
     # Students
     "shreyashetty670@gmail.com", 
@@ -120,6 +121,7 @@ def generate_response(prompt: str, system_instruction: str) -> str:
     """Sends a query to the Gemini API and returns the text response."""
     
     # 1. Initialize the client using the environment variable
+    # NOTE: Ensure you have GEMINI_API_KEY set in your Render environment variables
     client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
     
     # 2. Configure the model with the user's context
@@ -285,6 +287,7 @@ async def get_notes_link(branch: str):
 async def get_schedule(usn: str):
     # Simple mock data based on USN year
     try:
+        # Assumes USN format is consistent (e.g., 4CB23AI065 -> '23' is the year code)
         year_code = usn[3:5]
         if year_code == '23':
             schedule_link = "https://calendar.google.com/calendar/u/0/23_Batch_Schedule"
@@ -298,6 +301,7 @@ async def get_schedule(usn: str):
             
         return {"message": f"Schedule link for USN {usn}", "link": schedule_link}
     except IndexError:
+        # Handles cases where USN is too short to slice (e.g., less than 5 characters)
         raise HTTPException(status_code=400, detail="Invalid USN format.")
 
 # --- Placement Utility Endpoints ---
