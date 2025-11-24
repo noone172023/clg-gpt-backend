@@ -15,7 +15,7 @@ from database import DB
 # Load environment variables (like GEMINI_API_KEY)
 load_dotenv()
 
-# --- Pydantic Schemas (Defining them here since schemas.py is missing) ---
+# --- Pydantic Schemas (Defined locally) ---
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -46,11 +46,35 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Define the list of allowed registration/login emails (Whitelist)
+# --- Whitelist Definitions ---
+
+# Define the list of all allowed registration/login emails
 ALLOWED_EMAILS = {
+    # Students
     "shreyashetty670@gmail.com", 
     "swathi6105@gmail.com", 
-    "thrisha745@gmail.com"
+    "thrisha745@gmail.com",
+    
+    # Faculty
+    "faculty1@gmail.com", 
+    "faculty2@gmail.com",
+    
+    # Placement Cell
+    "placement1@gmail.com", 
+    "placement2@gmail.com"
+}
+
+# Define Role/Branch Requirements for Registration (Enforced in /register)
+ROLE_REQUIREMENTS = {
+    # Faculty must register with specific role/branch
+    "faculty1@gmail.com": {"role": "faculty", "branch": "CS"},
+    "faculty2@gmail.com": {"role": "faculty", "branch": "AI"},
+    
+    # Placement Cell must register with 'placement_cell' role (Branch is not strictly required)
+    "placement1@gmail.com": {"role": "placement_cell", "branch": None},
+    "placement2@gmail.com": {"role": "placement_cell", "branch": None},
+    
+    # Students do not require specific branch/role checks beyond the initial whitelist
 }
 
 
@@ -68,16 +92,18 @@ def determine_user_dashboard(role: str, study_year: int) -> str:
         return "student_placements"
     if role == "student":
         return "student_general"
-    # Placeholder for other roles
+    if role == "faculty":
+        return "faculty_dashboard"
+    if role == "placement_cell":
+        return "placement_dashboard"
     return "general"
     
-# --- Gemini Handler Functions (Defining them here since gemini_handler.py is missing) ---
+# --- Gemini Handler Functions (Defined locally) ---
 
 def generate_response(prompt: str, system_instruction: str) -> str:
     """Sends a query to the Gemini API and returns the text response."""
     
     # 1. Initialize the client using the environment variable
-    # Reads the GEMINI_API_KEY set in Render environment variables
     client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
     
     # 2. Configure the model with the user's context
@@ -103,51 +129,68 @@ async def root():
 
 @app.post("/register", status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserCreate):
+    # 0. Convert email to lower case for comparison
+    email_lower = user_data.email.lower()
+    
     # 1. Email Whitelist Check
-    if user_data.email.lower() not in ALLOWED_EMAILS:
+    if email_lower not in ALLOWED_EMAILS:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Registration denied. This email is not on the allowed list."
         )
 
-    # 2. Check for existing user
-    if db.find_user_by_email(user_data.email):
+    # 2. Enforce Role/Branch Requirements for Faculty/Placement Cell
+    if email_lower in ROLE_REQUIREMENTS:
+        required = ROLE_REQUIREMENTS[email_lower]
+        
+        # Check Role
+        if required["role"] != user_data.role:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Registration error: Email {email_lower} must register as role '{required['role']}'."
+            )
+            
+        # Check Branch (if required)
+        if required["branch"] and required["branch"] != user_data.branch:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Registration error: Email {email_lower} must register with branch '{required['branch']}'."
+            )
+
+    # 3. Check for existing user
+    # Note: We use the normalized email for the lookup
+    if db.find_user_by_email(email_lower): 
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User with this email already exists."
-        )
-
-    # 3. Handle ID field based on role (USN for students, Employee ID for others)
-    usn = user_data.usn
-    # Note: Pydantic validation handles the length now, but keeping this for role check
-    if user_data.role != 'student' and len(usn) != 10:
-         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Faculty/Placement Cell Employee ID must be 10 digits."
         )
 
     # 4. Hash Password and create user object
     hashed_password = get_password_hash(user_data.password)
     user_dict = user_data.model_dump()
     user_dict["hashed_password"] = hashed_password
+    user_dict["email"] = email_lower # Store normalized email
     del user_dict["password"] 
 
     # 5. Save to Database
     db.create_user(user_dict)
     
-    return {"message": "User registered successfully", "email": user_data.email}
+    return {"message": "User registered successfully", "email": email_lower}
 
 @app.post("/login")
 async def login(login_data: Login):
-    # 1. Email Whitelist Check
-    if login_data.email.lower() not in ALLOWED_EMAILS:
+    # 0. Convert email to lower case for comparison
+    email_lower = login_data.email.lower()
+    
+    # 1. Email Whitelist Check (Also blocks login for unlisted emails)
+    if email_lower not in ALLOWED_EMAILS:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Login denied. This email is not associated with an authorized user."
         )
 
     # 2. Retrieve user
-    user = db.find_user_by_email(login_data.email)
+    user = db.find_user_by_email(email_lower)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -203,7 +246,6 @@ async def chat_with_gemini(query: ChatQuery):
 
     except Exception as e:
         print(f"Gemini API Error: {e}")
-        # Note: If API key is wrong, the client initialization will fail here.
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occurred while processing the request: {e}"
@@ -227,7 +269,6 @@ async def get_notes_link(branch: str):
 @app.get("/student/schedule/{usn}")
 async def get_schedule(usn: str):
     # Simple mock data based on USN year
-    # Assumes USN format like 4cb23cs001 where '23' implies the year
     try:
         year_code = usn[3:5]
         if year_code == '23':
